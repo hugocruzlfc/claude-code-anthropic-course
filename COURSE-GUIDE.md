@@ -2,13 +2,13 @@
 
 Always open Claude in the project for the first time and run the command "/init".
 
-**_Adding Custom Instructions_**
+# Adding Custom Instructions
 
 You can customize how Claude behaves by adding instructions to your CLAUDE.md file. For example, if Claude is adding too many comments to code, you can address this by updating the file. Edit CLAUDE.md directly in your editor, or run /memory inside Claude Code to open the file. Add an instruction like Use comments sparingly. Only comment complex code.
 
 Claude reads this file at the start of every conversation, so changes apply to your next message.
 
-**_File Mentions with '@'_**
+# File Mentions with '@'
 
 When you need Claude to look at specific files, use the @ symbol followed by the file path. This automatically includes that file's contents in your request to Claude.
 
@@ -18,7 +18,7 @@ How does the auth system work? @auth
 
 Claude will show you a list of auth-related files to choose from, then include the selected file in your conversation.
 
-**_Referencing Files in CLAUDE.md_**
+# Referencing Files in CLAUDE.md
 
 You can also mention files directly in your CLAUDE.md file using the same @ syntax. This is particularly useful for files that are relevant to many aspects of your project.
 
@@ -31,13 +31,13 @@ When you mention a file this way, its contents are automatically included in eve
 
 When working with Claude in your development environment, you'll often need to make changes to existing projects. This guide covers practical techniques for implementing changes effectively, including visual communication with screenshots and leveraging Claude's advanced reasoning capabilities.
 
-**_Using Screenshots for Precise Communication_**
+# Using Screenshots for Precise Communication
 
 One of the most effective ways to communicate with Claude is through screenshots. When you want to modify a specific part of your interface, taking a screenshot helps Claude understand exactly what you're referring to.
 
 To paste a screenshot into Claude, use Ctrl+V (not Cmd+V on macOS). This keyboard shortcut is specifically designed for pasting screenshots into the chat interface. Once you've pasted the image, you can ask Claude to make specific changes to that area of your application.
 
-**_Planning Mode_**
+# Planning Mode
 
 For more complex tasks that require extensive research across your codebase, you can enable Planning Mode. This feature makes Claude do thorough exploration of your project before implementing changes.
 
@@ -52,7 +52,7 @@ This gives you the opportunity to review the plan and redirect Claude if it miss
 
 Tip: when reviewing the plan, you can press Ctrl+G to open it in your text editor. You can precise edits before approving the plan, and Claude will see the final version you submit.
 
-**_Effort level: how hard Claude thinks_**
+# Effort level: how hard Claude thinks
 
 By default, Claude reasons through problems before answering. You'll see hints like "still thinking" while it works. If you want to see Claude's reasoning process, press Ctrl+O to expand the actual reasoning steps.
 
@@ -60,7 +60,7 @@ You can control is how Claude reasons through a problem by setting an effort lev
 
 If you want to signal to Claude that it should do extra thinking on a single prompt, use the keyword ultrathink in your prompt. This signals to Claude that it should reason more on this turn, but doesn't adjust the session's effort level.
 
-**_When to Use Planning vs Effort_**
+# When to Use Planning vs Effort
 
 These two features handle different types of complexity:
 
@@ -78,7 +78,7 @@ Adjusting to a higher effort level is best for:
 
 You can combine both modes for tasks that require both breadth and depth. Just keep in mind that both features consume additional tokens, so there's a cost consideration for using them.
 
-**_Thinking Modes_**
+# Thinking Modes
 
 ![alt text](thinking_modes.png)
 
@@ -86,13 +86,13 @@ You can combine both modes for tasks that require both breadth and depth. Just k
 
 When working with Claude on complex tasks, you'll often need to guide the conversation to keep it focused and productive. There are several techniques you can use to control the flow of your conversation and help Claude stay on track.
 
-**_Interrupting Claude with Escape_**
+# Interrupting Claude with Escape
 
 Sometimes Claude starts heading in the wrong direction or tries to tackle too much at once. You can press the Escape key to stop Claude mid-response, allowing you to redirect the conversation.
 
 This is particularly useful when you want Claude to focus on one specific task instead of trying to handle multiple things simultaneously. For example, if you ask Claude to write tests for multiple functions and it starts creating a comprehensive plan for all of them, you can interrupt and ask it to focus on just one function at a time.
 
-**_Combining Escape with Memories_**
+# Combining Escape with Memories
 
 One of the most powerful applications of the escape technique is fixing repetitive errors. When Claude makes the same mistake repeatedly across different conversations, you can:
 
@@ -102,7 +102,8 @@ One of the most powerful applications of the escape technique is fixing repetiti
 
   This prevents Claude from making the same error in future conversations on your project.
 
-**_Rewinding Conversations_**
+# Rewinding Conversations
+
 During long conversations, you might accumulate context that becomes irrelevant or distracting. For instance, if Claude encounters an error and spends time debugging it, that back-and-forth discussion might not be useful for the next task.
 
 You can rewind the conversation by pressing Escape twice or typing /rewind. This shows you all the messages you've sent, allowing you to jump back to an earlier point and continue from there. This technique helps you:
@@ -111,7 +112,7 @@ You can rewind the conversation by pressing Escape twice or typing /rewind. This
 - Remove distracting or irrelevant conversation history
 - Keep Claude focused on the current task
 
-**_Context Management Commands_**
+# Context Management Commands
 
 Claude provides several commands to help manage conversation context effectively:
 
@@ -133,7 +134,8 @@ The /clear command starts a new conversation with fresh context. This is most us
 
 You can still go back to the previous conversation later with /resume. The /clear command does not remove the conversation from your session history.
 
-**_When to Use These Techniques_**
+# When to Use These Techniques
+
 These conversation control techniques are particularly valuable during:
 
 - Long-running conversations where context can become cluttered
@@ -142,3 +144,146 @@ These conversation control techniques are particularly valuable during:
 - Complex projects where you need to maintain focus on specific components
 
 By using escape, double-tap escape, /compact, and /clear strategically, you can keep Claude focused and productive throughout your development workflow. These aren't just convenience features—they're essential tools for maintaining effective AI-assisted development sessions.
+
+# Custom Commands
+
+Claude Code comes with built-in commands that you can access by typing a forward slash, but you can also create your own custom commands to automate repetitive tasks you run frequently.
+
+# Creating Custom Commands
+
+To create a custom command, you need to set up a specific folder structure in your project:
+
+- Find the .claude folder in your project directory
+- Create a new directory called commands inside it
+- Create a new markdown file with your desired command name (like audit.md)
+
+The filename becomes your command name - so audit.md creates the /audit command.
+
+# Example: Audit Command
+
+Here's a practical example of a custom command that audits project dependencies for vulnerabilities:
+
+This audit command does three things:
+
+- Runs npm audit to find vulnerable installed packages
+- Runs npm audit fix to apply updates
+- Runs tests to verify the updates didn't break anything
+
+After creating your command file, Claude Code picks it up automatically. You don't need to restart.
+
+# Commands with Arguments
+
+Custom commands can accept arguments using the $ARGUMENTS placeholder. This makes them much more flexible and reusable.
+
+For example, a write_tests.md command might contain:
+
+```markdown
+Write comprehensive tests for: $ARGUMENTS
+
+Testing conventions:
+
+- Use Vitest with React Testing Library
+- Place test files in a **tests** directory in the same folder as the source file
+- Name test files as [filename].test.ts(x)
+- Use @/ prefix for imports
+
+Coverage:
+
+- Test happy paths
+- Test edge cases
+- Test error states
+  You can then run this command with a file path:
+```
+
+/write_tests the use-auth.ts file in the hooks directory
+
+The arguments don't have to be file paths - they can be any string you want to pass to give Claude context and direction for the task.
+
+# Key Benefits
+
+**Automation** - Turn repetitive workflows into single commands
+
+**Consistency** - Ensure the same steps are followed every time
+
+**Context** - Provide Claude with specific instructions and conventions for your project
+
+**Flexibility** - Use arguments to make commands work with different inputs
+Custom commands are particularly useful for project-specific workflows like running test suites, deploying code, or generating boilerplate following your team's conventions.
+
+# MCP servers integrations with Claude Code
+
+You can extend Claude Code's capabilities by adding MCP (Model Context Protocol) servers. These servers run either remotely or locally on your machine and provide Claude with new tools and abilities it wouldn't normally have.
+
+One of the most popular MCP servers is Playwright, which gives Claude the ability to control a web browser. This opens up powerful possibilities for web development workflows.
+
+## Installing the Playwright MCP Server
+
+To add the Playwright server to Claude Code, run this command in your terminal (not inside Claude Code):
+
+```bash
+claude mcp add playwright npx @playwright/mcp@latest
+```
+
+This command does two things:
+
+- Names the MCP server "playwright"
+- Provides the command that starts the server locally on your machine
+
+## Managing Permissions
+
+When you first use MCP server tools, Claude will ask for permission each time. If you get tired of these permission prompts, you can pre-approve the server by editing your settings.
+
+Open the .claude/settings.local.json file and add the server to the allow array:
+
+```json
+{
+  "permissions": {
+    "allow": ["mcp__playwright"],
+    "deny": []
+  }
+}
+```
+
+Note the double underscores in mcp\_\_playwright. This allows Claude to use the Playwright tools without asking for permission every time.
+
+## Practical Example: Improving Component Generation
+
+Here's a real-world example of how the Playwright MCP server can improve your development workflow. Instead of manually testing and tweaking prompts, you can have Claude:
+
+Open a browser and navigate to your application
+Generate a test component
+Analyze the visual styling and code quality
+Update the generation prompt based on what it observes
+Test the improved prompt with a new component
+For instance, you might ask Claude to:
+
+```markdown
+"Navigate to localhost:3000, generate a basic component, review the styling, and update the generation prompt at @src/lib/prompts/generation.tsx to produce better components going forward."
+```
+
+Claude will use the browser tools to interact with your app, examine the generated output, and then modify your prompt file to encourage more original and creative designs.
+
+## Results and Benefits
+
+In practice, this approach can lead to significantly better results. Instead of generic purple-to-blue gradients and standard Tailwind patterns, Claude might update prompts to encourage:
+
+Warm sunset gradients (orange-to-pink-to-purple)
+Ocean depth themes (teal-to-emerald-to-cyan)
+Asymmetric designs and overlapping elements
+Creative spacing and unconventional layouts
+The key advantage is that Claude can see the actual visual output, not just the code, which allows it to make much more informed decisions about styling improvements.
+
+## Exploring Other MCP Servers
+
+Playwright is just one example of what's possible with MCP servers. The ecosystem includes servers for:
+
+Database interactions
+API testing and monitoring
+File system operations
+Cloud service integrations
+Development tool automation
+Consider exploring MCP servers that align with your specific development needs. They can transform Claude from a code assistant into a comprehensive development partner that can interact with your entire toolchain.
+
+```
+
+```
