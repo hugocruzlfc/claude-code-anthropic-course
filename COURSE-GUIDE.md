@@ -80,7 +80,7 @@ You can combine both modes for tasks that require both breadth and depth. Just k
 
 # Thinking Modes
 
-![alt text](thinking_modes.png)
+![alt text](uigen/thinking_modes.png)
 
 # Controlling context
 
@@ -385,3 +385,106 @@ When setting up Claude's GitHub integration:
 - Consider your project's specific needs when configuring additional steps
 
 The GitHub integration transforms Claude from a development assistant into an automated team member that can handle tasks, review code, and provide insights directly within your GitHub workflow.
+
+# Hooks
+
+View tool access:
+
+```bash
+List out the names of all the tools you have access to, bullet point list.
+```
+
+## Building a Hook
+
+Creating a hook involves four main steps:
+
+![alt text](queries/images/image-1.png)
+
+- Decide on a PreToolUse or PostToolUse hook - PreToolUse hooks can prevent tool calls from executing, while PostToolUse hooks run after the tool has already been used
+- Determine which type of tool calls you want to watch for - You need to specify exactly which tools should trigger your hook
+- Write a command that will receive the tool call - This command gets JSON data about the proposed tool call via standard input
+- If needed, command should provide feedback to Claude - Your command's exit code tells Claude whether to allow or block the operation
+
+## Available Tools
+
+Claude Code provides several built-in tools that you can monitor with hooks:
+
+![alt text](queries/images/image-2.png)
+
+To see exactly which tools are available in your current setup, you can ask Claude directly for a list. This is especially useful since the available tools can change when you add custom MCP servers.
+
+## Tool Call Data Structure
+
+When your hook command executes, Claude sends JSON data through standard input containing details about the proposed tool call:
+
+![alt text](queries/images/image-3.png)
+
+Your command reads this JSON from standard input, parses it, and then decides whether to allow or block the operation based on the tool name and input parameters.
+
+## Exit Codes and Control Flow
+
+Your hook command communicates back to Claude through exit codes:
+
+![alt text](queries/images/image-4.png)
+
+- Exit Code 0 - Everything is fine, allow the tool call to proceed
+- Exit Code 2 - Block the tool call (PreToolUse hooks only)
+
+When you exit with code 2 in a PreToolUse hook, any error messages you write to standard error will be sent to Claude as feedback, explaining why the operation was blocked.
+
+## Example Use Case
+
+A common use case is preventing Claude from reading sensitive files like .env files. Since both the Read and Grep tools can access file contents, you'd want to monitor both tool types and check if they're trying to access restricted file paths.
+
+This approach gives you complete control over Claude's file system access while providing clear feedback about why certain operations are restricted.
+
+# Gotchas around hooks
+
+You may notice that after running the npm run setup command there are two settings.json files in the .claude directory. Let me explain what's going on there.
+
+The Claude Code documentation lists some recommendations around hooks security:
+
+![alt text](queries/images/image-5.png)
+
+One of the recommendations is to use absolute paths (rather than relative paths) for scripts. This helps mitigate path interception and binary planting attacks.
+
+This recommendation also makes it much more challenging to share settings.json files. The reason is simple: the absolute path to any of the hook scripts on your machine will likely be different from the absolute path on my machine, simply because we will probably place the project in separate directories.
+
+To solve this problem, our project has a settings.example.json file. Inside of it, the script references contain a $PWD placeholder. When we run npm run setup, some dependencies are installed, but it also runs an init-claude.js script placed inside the scripts directory. This script will replace those $PWD placeholder with the absolute path to the project on your machine, copy the settings.example.json file, and rename it to settings.local.json.
+
+This script allows us to share settings.json files but still use the recommended absolute paths!
+
+# Another useful hook
+
+There are more hooks beyond the PreToolUse and PostToolUse hooks discussed in this course. There are also:
+
+- Notification - Runs when Claude Code sends a notification, which occurs when Claude needs permission to use a tool, or after Claude Code has been idle for 60 seconds
+- Stop - Runs when Claude Code has finished responding
+- SubagentStop - Runs when a subagent (these are displayed as a "Task" in the UI) has finished
+- PreCompact - Runs before a compact operation occurs, either manual or automatic
+- UserPromptSubmit - Runs when the user submits a prompt, before Claude processes it
+- SessionStart - Runs when starting or resuming a session
+- SessionEnd - Runs when a session ends
+
+Here's the confusing part:
+
+- The stdin input to your commands will change based upon the type of hook being executed (PreToolUse, PostToolUse, Notification, etc)
+- The tool_input contained in that will differ based upon the tool that was called (in the case of PreToolUse and PostToolUse hooks)
+
+For example, here's a sample of some stdin input to a hook, where the hook is a PostToolUse that was watching for uses of the TodoWrite tool. For reference, that is the tool that Claude uses to keep track of to-do items.
+
+To handle this challenge, try making a helper hook like this:
+
+```json
+"PostToolUse": [ // Or "PreToolUse" or "Stop", etc
+  {
+    "matcher": "*",
+    "hooks": [
+      {
+        "type": "command",
+        "command": "jq . > post-log.json"
+      }
+    ]
+  },
+]
+```
